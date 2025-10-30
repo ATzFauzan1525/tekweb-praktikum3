@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic To-Do App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div class="controls">
+            <h2>Page Appearance Controls</h2>
+            
+            <div class="control-group">
+                <label>Background Color:</label>
+                <select id="bgColorSelect">
+                    <option value="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)">Blue Gradient (Default)</option>
+                    <option value="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)">Green Gradient</option>
+                    <option value="#ffffff">White</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Font Size:</label>
+                <input type="range" id="fontSizeSlider" min="12" max="24" value="16">
+                <span class="font-size-display" id="fontSizeDisplay">16px</span>
+            </div>
+
+            <div class="control-group">
+                <label>Dark Mode:</label>
+                <button id="darkModeBtn">Toggle Dark Mode</button>
+            </div>
+
+            <div class="control-group">
+                <label>Font Style:</label>
+                <div class="control-buttons">
+                    <button id="sansBtn">Sans-Serif</button>
+                    <button id="serifBtn">Serif</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="todo-container">
+            <h2>My To-Do List</h2>
+            <input type="text" id="newTask" placeholder="Add a new task...">
+            <button class="add-btn" id="addBtn">Add Task</button>
+            <ul id="taskList"></ul>
+        </div>
+    </div>
+
+    <script>
+        let dark = false;
+        let bgColor = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+        let tasks = [];
+
+        const bgSelect = document.getElementById('bgColorSelect');
+        const fontSlider = document.getElementById('fontSizeSlider');
+        const fontDisplay = document.getElementById('fontSizeDisplay');
+        const darkBtn = document.getElementById('darkModeBtn');
+        const sansBtn = document.getElementById('sansBtn');
+        const serifBtn = document.getElementById('serifBtn');
+        const taskInput = document.getElementById('newTask');
+        const addBtn = document.getElementById('addBtn');
+        const taskList = document.getElementById('taskList');
+
+        bgSelect.onchange = () => {
+            if (!dark) {
+                bgColor = bgSelect.value;
+                document.body.style.background = bgColor;
+            }
+        };
+
+        fontSlider.oninput = () => {
+            let size = fontSlider.value;
+            document.body.style.fontSize = size + 'px';
+            fontDisplay.textContent = size + 'px';
+        };
+
+        darkBtn.onclick = () => {
+            dark = !dark;
+            document.body.classList.toggle('dark-mode');
+            bgSelect.disabled = dark;
+            if (!dark) {
+                document.body.style.background = bgColor;
+            }
+        };
+
+        sansBtn.onclick = () => {
+            document.body.style.fontFamily = 'Arial, sans-serif';
+        };
+
+        serifBtn.onclick = () => {
+            document.body.style.fontFamily = 'Georgia, serif';
+        };
+
+        function addTask() {
+            let text = taskInput.value.trim();
+            if (text === '') {
+                alert('Please enter a task!');
+                return;
+            }
+            tasks.push({ id: Date.now(), text: text, done: false });
+            taskInput.value = '';
+            render();
+        }
+
+        function deleteTask(taskId) {
+            tasks = tasks.filter(t => t.id !== taskId);
+            render();
+        }
+
+        function editTask(task) {
+            let newText = prompt('Edit task:', task.text);
+            if (newText !== null && newText.trim() !== '') {
+                task.text = newText.trim();
+                render();
+            }
+        }
+
+        addBtn.onclick = addTask;
+
+        taskInput.onkeypress = (e) => {
+            if (e.key === 'Enter') addTask();
+        };
+
+        function render() {
+            if (tasks.length === 0) {
+                taskList.innerHTML = '';
+                return;
+            }
+
+            taskList.innerHTML = '';
+            tasks.forEach(task => {
+                let li = document.createElement('li');
+                li.setAttribute('data-id', task.id);
+                if (task.done) li.classList.add('completed');
+
+                let span = document.createElement('span');
+                span.className = 'task-text';
+                span.textContent = task.text;
+                
+                span.onclick = () => {
+                    task.done = !task.done;
+                    render();
+                };
+
+                span.ondblclick = () => {
+                    editTask(task);
+                };
+
+                let btn = document.createElement('button');
+                btn.className = 'close';
+                btn.textContent = 'X';
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteTask(task.id);
+                };
+
+                li.appendChild(span);
+                li.appendChild(btn);
+                taskList.appendChild(li);
+            });
+        }
+
+        render();
+    </script>
+</body>
+</html>
